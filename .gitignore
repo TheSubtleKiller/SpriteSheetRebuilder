@@ -1,3 +1,7 @@
 test/
 build_exe/
 explode_exe/
+build/
+exploded/
+dist/
+__pycache__/
