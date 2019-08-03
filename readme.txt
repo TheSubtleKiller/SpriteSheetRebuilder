@@ -1,9 +1,9 @@
 explode.exe: 
     Takes a file or folder as an argument and will output a folder named for that texture under the root 'exploded' and fill it with sprites.
 
-explode -f my_texture.png
+explode my_texture.png
 OR
-explode -f my_texture_folder
+explode my_texture_folder
 
 
 build.exe: 
