@@ -2,6 +2,8 @@
 '''
 0.1 : First attempt.
 0.2 : Fixed rebuilding with animations.
+0.3 : Sprite edge duplication.
+0.3.1 : Sprite edge duplication fixes, still WiP.
 
 '''
 
@@ -16,7 +18,7 @@ import argparse
 import time
 
 
-version = "0.2"
+version = "0.3.1"
 
 def generate_spritesheet( src_dir, sheet_name ):
 
@@ -207,11 +209,71 @@ def convert_plist( plist_name, bbox, src_dir ):
 
     os.remove( plist_path )
 
-def pad_sprites( map_sprites ):
-    print("this is gonna suck")
+    return map_sprites
 
-    # for k, v in map_sprites.items():
-        # if the 
+def pad_sprites( map_sprites, sheet_name ):
+    print("# \tDuplicating sprite egdes...")
+
+    # Read image and get info
+    new_img_path = sheet_name + ".png"
+    img = Image.open( new_img_path )
+
+    pixels = img.load() # create the pixel map
+
+    for k, v in map_sprites.items():
+
+        # left edge
+        x = int(v['x'])
+        y = int(v['y'])
+        w = int(v['w'])
+        h = int(v['h'])
+        
+        ax = int(v['ax'])
+        ay = int(v['ay'])
+        aw = int(v['aw'])
+        ah = int(v['ah'])
+        
+        # Left
+        if ax == 0:
+            # print("Duplicated left edge for sprite " + k)
+            _x = x
+            for _y in range(y, y+h):
+                if _y % 2 == 0 or True:
+                    pixels[_x-1, _y] = pixels[_x, _y]
+                else:
+                    pixels[_x-1, _y] = (255,0,0,255)
+
+        # Right
+        if aw-ax == w:
+            # print("Duplicated right edge for sprite " + k)
+            _x = x + w - 1
+            for _y in range(y, y+h):
+                if _y % 2 == 0 or True:
+                    pixels[_x+1, _y] = pixels[_x, _y]
+                else:
+                    pixels[_x+1, _y] = (255,0,0,255)
+
+        # Top
+        if ay == 0:
+            # print("Duplicated top edge for sprite " + k)
+            _y = y
+            for _x in range(x, x+w):
+                if _x % 2 == 0 or True:
+                    pixels[_x, _y-1] = pixels[_x, _y]
+                else:
+                    pixels[_x, _y-1] = (255,0,0,255)
+            
+        # Bottom
+        if ah-ay == h:
+            # print("Duplicated bottom edge for sprite " + k)
+            _y = y + h - 1
+            for _x in range(x, x+w):
+                if _x % 2 == 0 or True:
+                    pixels[_x, _y+1] = pixels[_x, _y]
+                else:
+                    pixels[_x, _y+1] = (255,0,0,255)
+        
+    img.save( new_img_path )
 
 
 # Parse arguments
@@ -231,7 +293,7 @@ bbox = generate_spritesheet( results.dir[0], output_texture_name )
 
 map_sprites = convert_plist( output_texture_name, bbox, results.dir[0] )
 
-# pad_sprites( map_sprites )
+pad_sprites( map_sprites, output_texture_name )
 
 end = time.time()
 time_elapsed = end - start
