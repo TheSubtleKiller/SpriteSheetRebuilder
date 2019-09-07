@@ -1,19 +1,10 @@
-'''
-Decompiles either one spritesheet, a list of desired spritesheets, or every spritesheet in a given folder into individual sprites, 
-giving each spritesheet its own folder. Remembers every nonzero ah, aw, ax, and ay value and the sprites they belong to 
-(maybe append these values to the file name, or list them in a separate file?)
-
-- Scales every sprite to a desired scale, and multiplies all the memorized a values by the same scale. 
-  Rounds any decimal a values to the nearest integer.
-- Recompiles all the sprite folders into their spritesheets (options are PNG, JPEG, JPNG, or initial, warn about recompression for the latter three). 
-  Inserts them as demonstrated in this image.
-
-0.1 : First attempt.
-0.2 : Fixed exporting animations.
 
 '''
-
-version = "0.2"
+    @file explode.py
+    @date 11/JUN/2019
+    @author Stephen
+    @brief Break texture into component sprites using the related xml to find positions/sizes.
+'''
 
 from PIL import Image, ImageOps
 from xml.etree.ElementTree import parse, Element, SubElement, Comment, tostring
@@ -23,7 +14,9 @@ import os
 import argparse
 import time
 
+# Extensions to be silently ignored
 ignored_exts = [".xml"]
+# Extensions we support, if extension is not ignored and not in this list, then error.
 valid_img_exts = [".png", ".jpg", ".jpeg"]
 
 
@@ -45,17 +38,18 @@ def parse_cell( cell, img, img_info, dir_name, sheet_ext ):
 
         # print("sprite area: " + str(sprite_area[0]) + ", " + str(sprite_area[1]) + ", " + str(sprite_area[2]) + ", " + str(sprite_area[3]) )
 
+        # Wait what?  Impossible?
         if sprite_area[0] < 0:
-            print("too big")
-            
+            print("Too big, impossible?")            
         if sprite_area[1] < 0:
-            print("too big")
+            print("Too big, impossible?")
 
+        # Bad news
         if sprite_area[2] >= img.width:
-            print("too big")
+            print("Too big! >= img.width")
             
         if sprite_area[3] >= img.height:
-            print("too big")
+            print("Too big! >= img.height")
 
         sprite_img = img.crop( sprite_area )
 
@@ -160,21 +154,3 @@ def explode_spritesheet( sheet_path ):
         parse_cell( cell, img, img_info, dir_name, sheet_ext )
 
     print ("Finished exploding file: " + sheet_path)
-
-    
-# Parse arguments
-parser = argparse.ArgumentParser()
-parser.add_argument('f', nargs='+')
-
-print("SpriteSheetRebuilder v" + version + ", By Argh")
-
-start = time.time()
-
-# Attempt to handle each value in file list
-results = parser.parse_args()
-for path in results.f:
-    explode_spritesheet( path )
-
-end = time.time()
-time_elapsed = end - start
-print("Finished in " + str(time_elapsed))

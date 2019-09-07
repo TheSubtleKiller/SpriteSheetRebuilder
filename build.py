@@ -1,10 +1,9 @@
 
 '''
-0.1 : First attempt.
-0.2 : Fixed rebuilding with animations.
-0.3 : Sprite edge duplication.
-0.3.1 : Sprite edge duplication fixes, still WiP.
-
+    @file build.py
+    @date 11/JUN/2019
+    @author Stephen
+    @brief Build a texture using supplied sprites and generate matching xml with positions/sizes.
 '''
 
 from PIL import Image, ImageOps
@@ -17,13 +16,7 @@ import plistlib
 import argparse
 import time
 
-
-version = "0.3.1"
-
-max_width = 4096
-max_height = 4096 
-
-def generate_spritesheet( src_dir, sheet_name ):
+def generate_spritesheet( src_dir, sheet_name, max_w, max_h ):
 
     print("# Generating sprite sheet from sprites found in \"" + src_dir + "\"...")
     print("# \tPacking sprites (this may take a minute for larger sheets)...")
@@ -33,8 +26,8 @@ def generate_spritesheet( src_dir, sheet_name ):
     # create a MaxRectsBinPacker
     # See here for argument details: https://github.com/wo1fsea/PyTexturePacker/blob/master/README.rst
     packer = Packer.create( texture_format=".png",
-                            max_width, 
-                            max_height, 
+                            max_width=max_w, 
+                            max_height=max_h, 
                             bg_color=(255,255,255,0),
                             enable_rotated=False,
                             # force_square=False,
@@ -74,7 +67,8 @@ def generate_spritesheet( src_dir, sheet_name ):
     # Re-save texture
     img.save( new_img_path, **img_info )
 
-    return tweaked_bbox
+    texture_wh = (tweaked_bbox[2], tweaked_bbox[3])
+    return texture_wh
     
 
 def prettify(elem):
@@ -89,7 +83,7 @@ def get_immediate_subdirectories(a_dir):
             if os.path.isdir(os.path.join(a_dir, name))]
 
 # Convert PyTexturePacker's auto-generated plist into NK XML format
-def convert_plist( plist_name, bbox, src_dir ):
+def convert_plist( plist_name, texture_wh, src_dir ):
 
     print("# Generating xml...")
 
@@ -137,7 +131,6 @@ def convert_plist( plist_name, bbox, src_dir ):
     # print( metadata['realTextureFileName'] )
 
     texture_name_type = metadata['realTextureFileName'].split('.')
-    texture_wh = metadata['size'][1:-1].split(',')
 
 
     print("# \tConverting to xml...")
@@ -145,8 +138,8 @@ def convert_plist( plist_name, bbox, src_dir ):
     xml_root = Element('SpriteInformation')
     xml_frame_info = SubElement(xml_root, 'FrameInformation')
     xml_frame_info.set('name', texture_name_type[0])
-    xml_frame_info.set('texw', str(bbox[2]) ) # texture_wh[0]
-    xml_frame_info.set('texh', str(bbox[3]) )  # texture_wh[1]
+    xml_frame_info.set('texw', str(texture_wh[0]) )
+    xml_frame_info.set('texh', str(texture_wh[1]) )
     xml_frame_info.set('type', texture_name_type[1])
 
     current_anim = ""
@@ -164,8 +157,8 @@ def convert_plist( plist_name, bbox, src_dir ):
         xywh = xywh.replace('{', '')
         xywh = xywh.replace('}', '')
         xywh = xywh.split(',')
-        offset = frame['offset']
-        rotated = frame['rotated']
+        # offset = frame['offset'] # Unused
+        # rotated = frame['rotated'] # Unused
         sourceColorRect = frame['sourceColorRect']
         sourceColorRect = sourceColorRect.replace('{', '')
         sourceColorRect = sourceColorRect.replace('}', '')
@@ -215,7 +208,7 @@ def convert_plist( plist_name, bbox, src_dir ):
     return map_sprites
 
 def pad_sprites( map_sprites, sheet_name ):
-    print("# \tDuplicating sprite egdes...")
+    print("# \tDuplicating sprite edges...")
 
     # Read image and get info
     new_img_path = sheet_name + ".png"
@@ -277,31 +270,3 @@ def pad_sprites( map_sprites, sheet_name ):
                     pixels[_x, _y+1] = (255,0,0,255)
         
     img.save( new_img_path )
-
-
-# Parse arguments
-parser = argparse.ArgumentParser()
-parser.add_argument("dir", nargs=1)
-parser.add_argument("-o", "-output_name")
-parser.add_argument("-maxw", type=int, default=4096)
-parser.add_argument("-maxh", type=int, default=4096)
-results = parser.parse_args()
-
-output_texture_name = results.o
-max_width = results.maxw
-max_height = results.maxh
-
-start = time.time()
-
-print("### SpriteSheetRebuilder v" + version + ", By Argh ###")
-
-bbox = generate_spritesheet( results.dir[0], output_texture_name )
-
-
-map_sprites = convert_plist( output_texture_name, bbox, results.dir[0] )
-
-pad_sprites( map_sprites, output_texture_name )
-
-end = time.time()
-time_elapsed = end - start
-print("# Finished in " + str(time_elapsed))
