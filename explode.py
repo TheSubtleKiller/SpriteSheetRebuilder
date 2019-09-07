@@ -40,16 +40,16 @@ def parse_cell( cell, img, img_info, dir_name, sheet_ext ):
 
         # Wait what?  Impossible?
         if sprite_area[0] < 0:
-            print("Too big, impossible?")            
+            print("! Too big, impossible?")            
         if sprite_area[1] < 0:
-            print("Too big, impossible?")
+            print("! Too big, impossible?")
 
         # Bad news
         if sprite_area[2] >= img.width:
-            print("Too big! >= img.width")
+            print("! Too big! >= img.width")
             
         if sprite_area[3] >= img.height:
-            print("Too big! >= img.height")
+            print("! Too big! >= img.height")
 
         sprite_img = img.crop( sprite_area )
 
@@ -61,7 +61,7 @@ def parse_cell( cell, img, img_info, dir_name, sheet_ext ):
         sprite_img.save( dir_name + cell.attrib['name'] + sheet_ext, **img_info )
 
     except:
-        print("\033[1;31;40m ! Failed to save sprite '" + "', area: " + str(sprite_area))
+        print("! Failed to save sprite '" + "', area: " + str(sprite_area))
 
 def explode_spritesheet( sheet_path ):
 
