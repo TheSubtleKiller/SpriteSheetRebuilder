@@ -67,4 +67,7 @@ elif ( results.command == 'build' ):
     end = time.time()
     time_elapsed = end - start
     print("# Finished building in " + str(time_elapsed))
+
+else:
     
+    print("You must use either the 'explode' or 'build' commands.")
