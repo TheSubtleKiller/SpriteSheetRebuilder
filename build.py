@@ -20,6 +20,9 @@ import time
 
 version = "0.3.1"
 
+max_width = 4096
+max_height = 4096 
+
 def generate_spritesheet( src_dir, sheet_name ):
 
     print("# Generating sprite sheet from sprites found in \"" + src_dir + "\"...")
@@ -30,8 +33,8 @@ def generate_spritesheet( src_dir, sheet_name ):
     # create a MaxRectsBinPacker
     # See here for argument details: https://github.com/wo1fsea/PyTexturePacker/blob/master/README.rst
     packer = Packer.create( texture_format=".png",
-                            max_width=4096, 
-                            max_height=4096, 
+                            max_width, 
+                            max_height, 
                             bg_color=(255,255,255,0),
                             enable_rotated=False,
                             # force_square=False,
@@ -280,9 +283,13 @@ def pad_sprites( map_sprites, sheet_name ):
 parser = argparse.ArgumentParser()
 parser.add_argument("dir", nargs=1)
 parser.add_argument("-o", "-output_name")
+parser.add_argument("-maxw", type=int, default=4096)
+parser.add_argument("-maxh", type=int, default=4096)
 results = parser.parse_args()
 
 output_texture_name = results.o
+max_width = results.maxw
+max_height = results.maxh
 
 start = time.time()
 
