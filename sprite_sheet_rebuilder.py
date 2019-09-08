@@ -9,6 +9,7 @@
 import explode
 import build
 
+import os
 import time
 import argparse
 
@@ -26,7 +27,7 @@ parser_explode.add_argument('f', nargs='+')
 
 # build parser
 parser_build = subparsers.add_parser('build', help="Builds a sprite sheet using given sprites and generates matching xml.")
-parser_build.add_argument("dir", nargs=1)
+parser_build.add_argument("sprite_directory", nargs=1)
 parser_build.add_argument("output_sheet_name")
 parser_build.add_argument("-maxw", type=int, default=4096)
 parser_build.add_argument("-maxh", type=int, default=4096)
@@ -52,15 +53,17 @@ if ( results.command == 'explode' ):
 # Build new sprite sheet
 elif ( results.command == 'build' ):
 
-    output_texture_name = results.output_sheet_name
+    # Get output file name (ignores extension if given)
+    output_texture_name = os.path.splitext( results.output_sheet_name )[0]
+    
 
     start = time.time()
 
     # build sprite sheet, return size
-    texture_wh = build.generate_spritesheet( results.dir[0], output_texture_name, results.maxw, results.maxh )
+    texture_wh = build.generate_spritesheet( results.sprite_directory[0], output_texture_name, results.maxw, results.maxh )
 
     # Convert the auto-generated plist file into the NK xml format, return map of sprites and locations
-    map_sprites = build.convert_plist( output_texture_name, texture_wh, results.dir[0] )
+    map_sprites = build.convert_plist( output_texture_name, texture_wh, results.sprite_directory[0] )
 
     # Do a final pass on the spritesheet, duplicating edges where appropriate
     build.pad_sprites( map_sprites, output_texture_name )
