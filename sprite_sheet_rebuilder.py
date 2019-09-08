@@ -56,7 +56,6 @@ elif ( results.command == 'build' ):
     # Get output file name (ignores extension if given)
     output_texture_name = os.path.splitext( results.output_sheet_name )[0]
     
-
     start = time.time()
 
     # build sprite sheet, return size
