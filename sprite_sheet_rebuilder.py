@@ -14,7 +14,7 @@ import argparse
 
 version = "0.4"
 
-print("# SpriteSheetRebuilder v" + version + ", By Argh")
+print("# SpriteSheetRebuilder v" + version + ", By Argh\n")
 
 # root parser
 parser = argparse.ArgumentParser()
@@ -42,7 +42,8 @@ if ( results.command == 'explode' ):
     # Attempt to handle each value in file list
     results = parser.parse_args()
     for path in results.f:
-        explode.explode_spritesheet( path )
+        print("# Searching for sprite sheets at: " + path)
+        explode.explode_spritesheet( path, "./exploded" )
 
     end = time.time()
     time_elapsed = end - start

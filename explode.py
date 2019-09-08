@@ -40,16 +40,16 @@ def parse_cell( cell, img, img_info, dir_name, sheet_ext ):
 
         # Wait what?  Impossible?
         if sprite_area[0] < 0:
-            print("! Too big, impossible?")            
+            print("\t!# Too big, impossible?")            
         if sprite_area[1] < 0:
-            print("! Too big, impossible?")
+            print("\t!# Too big, impossible?")
 
         # Bad news
         if sprite_area[2] >= img.width:
-            print("! Too big! >= img.width")
+            print("\t!# Too big! >= img.width")
             
         if sprite_area[3] >= img.height:
-            print("! Too big! >= img.height")
+            print("\t!# Too big! >= img.height")
 
         sprite_img = img.crop( sprite_area )
 
@@ -58,36 +58,48 @@ def parse_cell( cell, img, img_info, dir_name, sheet_ext ):
         sprite_img = ImageOps.expand( sprite_img, alpha_border, 0)
 
         # Save out sprite
-        sprite_img.save( dir_name + cell.attrib['name'] + sheet_ext, **img_info )
+        output_sprite = os.path.join(dir_name, (cell.attrib['name'] + sheet_ext))
+        # print("Saving to: " + output_sprite)
+        sprite_img.save( output_sprite, **img_info )
 
     except:
-        print("! Failed to save sprite '" + "', area: " + str(sprite_area))
+        print("\t!# Failed to save sprite '" + "', area: " + str(sprite_area))
 
-def explode_spritesheet( sheet_path ):
+
+def explode_spritesheet( sheet_path, output_root ):
+    # print("explode_spritesheet: " + sheet_path + ", output_root: " + output_root)
 
     # Check the path is valid
     if os.path.exists(sheet_path) == False:
-        print ("Could not find file: " + sheet_path)
+        print ("!# Invalid path?: " + sheet_path)
         return
 
     # If the path is a folder...
     if os.path.isdir(sheet_path) == True:
-        print ("Path is a dir: " + sheet_path)
+        # print ("Path is a dir: " + sheet_path)
 
-        # Walk the directory tree and ind every file in it
-        sub_files = []
+        # Walk the directory tree and every file in it
+        sub_files = {}
         for (dirpath, dirnames, filenames) in walk(sheet_path):
-            sub_files.extend(os.path.join(dirpath, filename) for filename in filenames)
+            # print("walk: " + dirpath + " | " + os.path.relpath(dirpath, sheet_path))
+
+            # Get path relative to root so we can set correct output folder
+            relative_path = os.path.relpath(dirpath, sheet_path)
+            
+            # Create list of files and their relative paths
+            for filename in filenames:
+                sub_files[os.path.join(dirpath, filename)] = relative_path
 
         # Attempt to explode each file
-        for sub_file in sub_files:
-            explode_spritesheet(sub_file)
+        for (sub_file, relative_path) in sub_files.items():
+            output_path = os.path.normpath(os.path.join(output_root, relative_path))
+            explode_spritesheet(sub_file, output_path)
 
         return
 
     # We got this far and the thing still isn't a file?
     if os.path.isfile(sheet_path) == False:
-        print ("Path is not a file: " + sheet_path)
+        print ("!# Path is not a file: " + sheet_path)
         return
 
     # Get directory/file tuple
@@ -98,15 +110,17 @@ def explode_spritesheet( sheet_path ):
     sheet_name = os.path.splitext( split_path[1] )[0]
     sheet_ext = os.path.splitext( sheet_path )[1]
 
-    print ("dir: " + sheet_dir + ", file: " + sheet_name + ", ext: " + sheet_ext)
+    # print ("dir: " + sheet_dir + ", file: " + sheet_name + ", ext: " + sheet_ext)
 
     # If file extension is an ignored type, silently bail out
     if sheet_ext in ignored_exts:
         return
+        
+    print ("# Attempting to explode: " + sheet_path)
 
     # Make sure file extension is valid image type
     if (sheet_ext in valid_img_exts) == False:
-        print("Invalid image extension: " + sheet_ext)
+        print("!# \tInvalid image extension: " + sheet_ext)
         return
 
     # Build path to accompanying xml
@@ -114,7 +128,7 @@ def explode_spritesheet( sheet_path ):
 
     # Make sure the xml exists
     if os.path.exists(xml_path) == False:
-        print ("Could not find texture xml: " + xml_path)
+        print ("!# \tCould not find texture xml: " + xml_path)
         return
 
     # Read image and get info
@@ -122,7 +136,7 @@ def explode_spritesheet( sheet_path ):
     img_info = img.info
     
     # make sure output folder path exists
-    dir_name = os.path.join("exploded", os.path.join(sheet_dir, sheet_name + '/'))
+    dir_name = os.path.join(output_root, sheet_name)
     if not os.path.exists( dir_name ):
         os.makedirs( dir_name )
 
@@ -137,7 +151,7 @@ def explode_spritesheet( sheet_path ):
         # print("Anim: " + anim_name)
 
         # Create a folder for the animation frame cells
-        anim_dir_name = os.path.join(dir_name, anim_name + '/')
+        anim_dir_name = os.path.join(dir_name, anim_name)
         if not os.path.exists( anim_dir_name ):
             os.makedirs( anim_dir_name )
 
@@ -153,4 +167,4 @@ def explode_spritesheet( sheet_path ):
 
         parse_cell( cell, img, img_info, dir_name, sheet_ext )
 
-    print ("Finished exploding file: " + sheet_path)
+    print ("# \tFinished exploding sprites: " + dir_name + "\n")
